@@ -267,6 +267,30 @@ class AMIGAInterpreter:
         """Обрабатывает вызов метода"""
         line = line.rstrip(';').strip()
         
+        # Обработка методов массивов: numbers.length()
+        if '.' in line and '(' in line and ']' not in line:
+            parts = line.split('.', 1)
+            obj_name = parts[0].strip()
+            method_call = parts[1].strip()
+            
+            # Проверяем, что это массив
+            if obj_name in self.variables:
+                obj = self.variables[obj_name]
+                if isinstance(obj, AMIGAArray):
+                    method_name = method_call.split('(')[0]
+                    args_str = method_call[method_call.find('(')+1:method_call.find(')')]
+                    
+                    if method_name == "length":
+                        return obj.length()
+                    elif method_name == "push":
+                        value = self.evaluate_expression(args_str)
+                        obj.push(value)
+                        return obj
+                    elif method_name == "pop":
+                        return obj.pop()
+                    elif method_name == "shift":
+                        return obj.shift()
+        
         # Обработка интерполяции строк
         if line.startswith('$"'):
             return self.evaluate_string_interpolation(line)
@@ -328,6 +352,48 @@ class AMIGAInterpreter:
         return result
     
     def evaluate_expression(self, expr):
+        """Вычисляет выражение"""
+        expr = expr.strip()
+        
+        # Парсинг массива [1, 2, 3]
+        if expr.startswith('[') and expr.endswith(']'):
+            content = expr[1:-1].strip()
+            if not content:
+                return AMIGAArray([])
+            
+            # Разбираем элементы
+            items = []
+            current = ""
+            in_string = False
+            
+            for char in content:
+                if char == '"' and not in_string:
+                    in_string = True
+                    current += char
+                elif char == '"' and in_string:
+                    in_string = False
+                    current += char
+                elif char == ',' and not in_string:
+                    items.append(self.evaluate_expression(current.strip()))
+                    current = ""
+                else:
+                    current += char
+            
+            if current.strip():
+                items.append(self.evaluate_expression(current.strip()))
+            
+            return AMIGAArray(items)
+        
+        # Доступ к массиву по индексу numbers[0]
+        if '[' in expr and ']' in expr:
+            var_name = expr[:expr.find('[')]
+            index_expr = expr[expr.find('[')+1:expr.find(']')]
+            
+            if var_name.strip() in self.variables:
+                array = self.variables[var_name.strip()]
+                index = self.evaluate_expression(index_expr)
+                if isinstance(array, AMIGAArray):
+                    return array[index]
         """Вычисляет выражение"""
         expr = expr.strip()
         
@@ -603,3 +669,40 @@ class AMIGAInterpreter:
                 break
         
         return i
+
+class AMIGAArray:
+    """Массив в языке AMIGA"""
+    
+    def __init__(self, items=None):
+        self.items = items if items else []
+    
+    def __getitem__(self, index):
+        """Получение элемента по индексу"""
+        if 0 <= index < len(self.items):
+            return self.items[index]
+        raise Exception(f"Индекс {index} вне диапазона (0..{len(self.items)-1})")
+    
+    def __setitem__(self, index, value):
+        """Установка элемента по индексу"""
+        if 0 <= index < len(self.items):
+            self.items[index] = value
+        else:
+            raise Exception(f"Индекс {index} вне диапазона")
+    
+    def length(self):
+        """Длина массива"""
+        return len(self.items)
+    
+    def push(self, value):
+        """Добавить в конец"""
+        self.items.append(value)
+        return self
+    
+    def pop(self):
+        """Удалить последний"""
+        if self.items:
+            return self.items.pop()
+        return None
+    
+    def __str__(self):
+        return f"[{', '.join(str(i) for i in self.items)}]"

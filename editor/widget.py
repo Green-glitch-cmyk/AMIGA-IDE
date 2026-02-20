@@ -34,6 +34,13 @@ class LineNumbers(tk.Canvas):
         """Обновление номеров строк при изменении текста"""
         self.redraw()
     
+    def update_theme(self, theme):
+        """Обновляет цвета темы"""
+        self.bg_color = theme["editor"]["bg"] if not self.is_light_theme else "#f0f0f0"
+        self.fg_color = "#858585" if not self.is_light_theme else "#666666"
+        self.configure(bg=self.bg_color)
+        self.redraw()
+    
     def redraw(self):
         """Перерисовка номеров строк"""
         self.delete("all")
@@ -69,10 +76,11 @@ class LineNumbers(tk.Canvas):
 class AMIGAEditor(ttk.Frame):
     """Текстовый редактор с подсветкой синтаксиса для AMIGA"""
     
-    def __init__(self, parent, is_light_theme=False, *args, **kwargs):
+    def __init__(self, parent, is_light_theme=False, custom_font=("Consolas", 11), *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         
         self.is_light_theme = is_light_theme
+        self.custom_font = custom_font
         
         # Настройка цветов в зависимости от темы
         if is_light_theme:
@@ -101,14 +109,14 @@ class AMIGAEditor(ttk.Frame):
                                 bd=1, relief=tk.SUNKEN)
         editor_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Создаем текстовое поле
+        # Создаем текстовое поле с кастомным шрифтом
         self.text = tk.Text(
             editor_frame,
             wrap=tk.WORD,
             bg=self.bg_color,
             fg=self.fg_color,
             insertbackground=self.insert_bg,
-            font=("Consolas", 11),
+            font=self.custom_font,  # Используем кастомный шрифт!
             undo=True,
             autoseparators=True,
             maxundo=-1,
@@ -134,7 +142,7 @@ class AMIGAEditor(ttk.Frame):
         
     def setup_bindings(self):
         """Настройка привязок событий"""
-        # Подсветка в реальном времени при любых изменениях
+        # Подсветка в реальном времени
         self.text.bind('<KeyRelease>', self.on_text_changed)
         self.text.bind('<<Paste>>', self.on_text_changed)
         self.text.bind('<Return>', self.on_text_changed)
@@ -154,11 +162,8 @@ class AMIGAEditor(ttk.Frame):
         
     def on_text_changed(self, event=None):
         """Обработка изменений текста в реальном времени"""
-        # Обновляем подсветку синтаксиса
         self.highlight_syntax()
-        # Обновляем номера строк
         self.line_numbers.redraw()
-        # Продолжаем обработку события
         return None
     
     def highlight_syntax(self):
@@ -166,27 +171,62 @@ class AMIGAEditor(ttk.Frame):
         if self.highlighter:
             self.highlighter.highlight()
     
+    def apply_theme(self, theme_name):
+        """Применить тему"""
+        theme = THEMES.get(theme_name, THEMES["light"])
+        
+        # Обновляем цвета
+        if theme_name == "light":
+            self.bg_color = "#ffffff"
+            self.fg_color = "#000000"
+            self.insert_bg = "#000000"
+            self.select_bg = "#add6ff"
+            self.select_fg = "#000000"
+            self.is_light_theme = True
+        else:
+            self.bg_color = "#1e1e1e"
+            self.fg_color = "#d4d4d4"
+            self.insert_bg = "#ffffff"
+            self.select_bg = "#264f78"
+            self.select_fg = "#ffffff"
+            self.is_light_theme = False
+        
+        # Применяем к текстовому полю
+        self.text.config(
+            bg=self.bg_color,
+            fg=self.fg_color,
+            insertbackground=self.insert_bg,
+            selectbackground=self.select_bg,
+            selectforeground=self.select_fg
+        )
+        
+        # Обновляем подсветку синтаксиса
+        self.highlighter.update_theme(theme_name)
+        
+        # Обновляем номера строк
+        self.line_numbers.update_theme(theme)
+        
+        # Переподсвечиваем
+        self.highlight_syntax()
+    
     def handle_tab(self, event):
         """Обработка табуляции"""
         self.text.insert(tk.INSERT, "    ")
-        self.on_text_changed()  # Обновляем подсветку
+        self.on_text_changed()
         return "break"
     
     def handle_shift_tab(self, event):
         """Обработка Shift+Tab (удаление отступа)"""
         try:
-            # Получаем текущую позицию курсора
             line_start = self.text.index(tk.INSERT + " linestart")
-            line_end = self.text.index(tk.INSERT + " lineend")
-            
-            # Проверяем, есть ли отступ в начале строки
             text_before_cursor = self.text.get(line_start, tk.INSERT)
+            
             if text_before_cursor.startswith("    "):
                 self.text.delete(line_start, line_start + " + 4 chars")
-                self.on_text_changed()  # Обновляем подсветку
+                self.on_text_changed()
             elif text_before_cursor.startswith("\t"):
                 self.text.delete(line_start, line_start + " + 1 chars")
-                self.on_text_changed()  # Обновляем подсветку
+                self.on_text_changed()
         except:
             pass
         
@@ -198,30 +238,29 @@ class AMIGAEditor(ttk.Frame):
         self.text.insert(tk.INSERT, char)
         
         try:
-            # Проверяем, не внутри ли мы уже строки
             pos = self.text.index(tk.INSERT)
             prev_char = self.text.get("{} - 2 chars".format(pos), "{} - 1 chars".format(pos))
             
-            if prev_char != '\\':  # Не экранировано
+            if prev_char != '\\':
                 self.text.insert(tk.INSERT, char)
         except:
             self.text.insert(tk.INSERT, char)
         
-        self.on_text_changed()  # Обновляем подсветку
+        self.on_text_changed()
         return "break"
     
     def auto_paren(self, event):
         """Автоматическое закрытие скобок"""
         self.text.insert(tk.INSERT, "()")
         self.text.mark_set(tk.INSERT, "{} - 1 chars".format(tk.INSERT))
-        self.on_text_changed()  # Обновляем подсветку
+        self.on_text_changed()
         return "break"
     
     def auto_bracket(self, event):
         """Автоматическое закрытие квадратных скобок"""
         self.text.insert(tk.INSERT, "[]")
         self.text.mark_set(tk.INSERT, "{} - 1 chars".format(tk.INSERT))
-        self.on_text_changed()  # Обновляем подсветку
+        self.on_text_changed()
         return "break"
     
     def auto_brace(self, event):
@@ -232,7 +271,7 @@ class AMIGAEditor(ttk.Frame):
         # Автоматический перенос строки внутри {}
         self.text.insert(tk.INSERT, "\n    \n}")
         self.text.mark_set(tk.INSERT, "{} - 3 lines + 4 chars".format(tk.INSERT))
-        self.on_text_changed()  # Обновляем подсветку
+        self.on_text_changed()
         return "break"
     
     def get_all_text(self):
@@ -251,22 +290,3 @@ class AMIGAEditor(ttk.Frame):
         self.text.delete(1.0, tk.END)
         self.highlight_syntax()
         self.line_numbers.redraw()
-    
-    def apply_theme(self, theme_name):
-        """Применить тему"""
-        theme = THEMES.get(theme_name, THEMES["light"])
-        
-        # Применяем цвета к редактору
-        self.text.config(
-            bg=theme["editor"]["bg"],
-            fg=theme["editor"]["fg"],
-            insertbackground=theme["editor"]["insert"],
-            selectbackground=theme["editor"]["select_bg"],
-            selectforeground=theme["editor"]["select_fg"]
-        )
-        
-        # Обновляем подсветку синтаксиса
-        self.highlighter.update_theme(theme)
-        
-        # Обновляем номера строк
-        self.line_numbers.update_theme(theme)

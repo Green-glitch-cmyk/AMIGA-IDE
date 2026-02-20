@@ -1,0 +1,31 @@
+@use Console;
+
+private local class App {
+    global define OnRun() {
+        // Создаём массивы
+        local array numbers = [1, 2, 3, 4, 5];
+        local array names = ["Вова", "Антон", "Дима"];
+        local array mixed = [42, "текст", 3.14];
+        
+        // Выводим элементы
+        Console.Print("Первый элемент: " .= numbers[0].toString());
+        Console.Print("Второе имя: " .= names[1]);
+        
+        // Длина массива
+        Console.Print("Длина numbers: " .= numbers.length().toString());
+        
+        // Добавляем элементы
+        numbers.push(6);
+        Console.Print("После push: " .= numbers.toString());
+        
+        // Удаляем последний
+        local last = numbers.pop();
+        Console.Print("Удалили: " .= last.toString());
+        Console.Print("Осталось: " .= numbers.toString());
+        
+        // Перебираем массив
+        for i in numbers {
+            Console.Print($"Элемент: {i}");
+        }
+    }
+}

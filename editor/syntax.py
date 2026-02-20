@@ -140,8 +140,10 @@ class AMIGASyntaxHighlighter:
         keywords = [
             'if', 'then', 'elsif', 'else', 'while', 'for', 'each',
             'break', 'continue', 'return', 'global', 'local', 'private',
-            'public', 'class', 'define', 'true', 'false', 'in'
+            'public', 'class', 'define', 'true', 'false', 'in',
+            'array', 'length', 'push', 'pop', 'shift'  # <--- новые слова
         ]
+        # ... остальной код
         
         # Создаём паттерн для поиска целых слов
         pattern = r'\b(' + '|'.join(keywords) + r')\b'
