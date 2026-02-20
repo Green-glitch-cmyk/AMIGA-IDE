@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Build
+build/
+dist/
+*.exe
+*.spec
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# PyInstaller
+*.manifest
+*.log
+
+# Project specific
+AMIGA_IDE_Portable/
+installer/
