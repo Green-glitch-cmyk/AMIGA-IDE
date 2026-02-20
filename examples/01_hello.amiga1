@@ -1,0 +1,7 @@
+@use Console;
+
+private local class App {
+    global define OnRun() {
+        Console.Print("Hello, World!");
+    }
+}

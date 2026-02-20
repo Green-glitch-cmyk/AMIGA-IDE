@@ -1,0 +1,36 @@
+{
+    "language": "English",
+    "menu": {
+        "file": "File",
+        "new": "New",
+        "open": "Open",
+        "save": "Save",
+        "save_as": "Save As",
+        "exit": "Exit",
+        "run": "Run",
+        "run_code": "Run",
+        "clear_output": "Clear Output",
+        "help": "Help",
+        "about": "About",
+        "view": "View",
+        "theme": "Theme",
+        "light_theme": "Light",
+        "dark_theme": "Dark (beta)"
+    },
+    "status": {
+        "ready": "Ready",
+        "line": "Ln",
+        "column": "Col",
+        "saved": "Saved",
+        "opened": "Opened",
+        "error": "Error"
+    },
+    "dialog": {
+        "save_changes": "Save changes?",
+        "yes": "Yes",
+        "no": "No",
+        "cancel": "Cancel",
+        "warning": "Warning",
+        "no_code": "No code to run"
+    }
+}

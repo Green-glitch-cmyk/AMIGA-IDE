@@ -1,0 +1,10 @@
+@use Console;
+@use Times;
+
+private local class App {
+    global define OnRun() {
+        for i in Times.Range(5) {
+            Console.Print($"Счёт: {i}");
+        }
+    }
+}

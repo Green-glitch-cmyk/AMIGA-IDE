@@ -209,3 +209,21 @@ class AMIGASyntaxHighlighter:
         # Простая проверка: считаем кавычки до позиции
         quotes = text[:pos].count('"')
         return quotes % 2 == 1
+
+    def update_theme(self, theme):
+        """Обновить цвета подсветки"""
+        syntax_theme = theme["syntax"]
+        
+        self.text.tag_configure("class", foreground=syntax_theme["class"])
+        self.text.tag_configure("decorator", foreground=syntax_theme["decorator"], 
+                            font=("Consolas", 10, "bold"))
+        self.text.tag_configure("keyword", foreground=syntax_theme["keyword"], 
+                            font=("Consolas", 10, "bold"))
+        self.text.tag_configure("comment", foreground=syntax_theme["comment"], 
+                            font=("Consolas", 10, "italic"))
+        self.text.tag_configure("string", foreground=syntax_theme["string"])
+        self.text.tag_configure("number", foreground=syntax_theme["number"])
+        self.text.tag_configure("operator", foreground=syntax_theme["operator"])
+        
+        # Переподсвечиваем текст
+        self.highlight()

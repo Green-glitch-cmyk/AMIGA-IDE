@@ -5,6 +5,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from editor.themes import THEMES
+from core.languages import lang_manager
 import os
 import sys
 
@@ -26,6 +28,8 @@ class AMIGAIDE:
         
         # Устанавливаем иконку программы (icon.ico)
         self.set_program_icon()
+
+        self.current_theme = "light"  # по умолчанию светлая
         
         # Текущий файл
         self.current_file = None
@@ -78,6 +82,23 @@ class AMIGAIDE:
         menubar.add_cascade(label="Запуск", menu=run_menu)
         run_menu.add_command(label="Запустить (F5)", command=self.run_code, accelerator="F5")
         run_menu.add_command(label="Очистить вывод", command=self.clear_output)
+        # Меню View
+        view_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Вид", menu=view_menu)
+        
+        self.theme_var = tk.StringVar(value="Светлая")
+        view_menu.add_radiobutton(
+            label="Светлая тема",
+            variable=self.theme_var,
+            value="Светлая",
+            command=lambda: self.toggle_theme("light")
+        )
+        view_menu.add_radiobutton(
+            label="Тёмная тема (бета)",
+            variable=self.theme_var,
+            value="Тёмная",
+            command=lambda: self.toggle_theme("dark")
+        )
         
         # Меню Help
         help_menu = tk.Menu(menubar, tearoff=0)
@@ -168,7 +189,32 @@ class AMIGAIDE:
         self.root.bind('<Control-o>', lambda e: self.open_file())
         self.root.bind('<Control-s>', lambda e: self.save_file())
         self.root.bind('<F5>', lambda e: self.run_code())
+    
+    def switch_language(self, lang_code):
+        """Переключение языка интерфейса"""
+        # Устанавливаем язык
+        if lang_manager.set_language(lang_code):
+            # Обновляем интерфейс
+            self.update_ui_language()
+            
+            # Показываем сообщение
+            self.status_label.config(
+                text=f"Язык: {lang_manager.get_language_name()}"
+            )
         
+    
+    def update_ui_language(self):
+        """Обновляет текст в интерфейсе при смене языка"""
+        # Обновляем заголовок окна
+        self.root.title(f"AMIGA IDE - {lang_manager.get_text('language')}")
+        
+        # Обновляем статус
+        self.status_label.config(text=lang_manager.get_text("status.ready"))
+        
+        # Обновляем заголовки в консоли
+        # (тут можно добавить больше обновлений)
+
+
     def new_file(self):
         """Создать новый файл"""
         if self.editor.get_all_text() and messagebox.askyesno("Сохранение", 
@@ -184,12 +230,26 @@ class AMIGAIDE:
     def open_file(self):
         """Открыть файл"""
         filename = filedialog.askopenfilename(
-            title="Открыть файл AMIGA",
-            filetypes=[("Файл AMIGA 1", "*.amiga1"), ("Файл AMIGA (все версии) (не рекомендованно)", "*.amiga")]
+            title="Открыть файл AMIGA 1",
+            filetypes=[
+                ("AMIGA 1 files", "*.amiga1"),
+                ("Legacy AMIGA files", "*.amiga"),
+                ("All files", "*.*")
+            ]
         )
         
         if filename:
             try:
+                # Проверяем расширение
+                ext = os.path.splitext(filename)[1].lower()
+                
+                if ext == '.amiga2' or ext == '.amiga3':
+                    messagebox.showwarning(
+                        "Предупреждение",
+                        f"Файл {ext} предназначен для более новой версии AMIGA.\n"
+                        "Возможны ошибки совместимости!"
+                    )
+                
                 with open(filename, 'r', encoding='utf-8') as file:
                     content = file.read()
                 
@@ -201,10 +261,11 @@ class AMIGAIDE:
                 
             except Exception as e:
                 messagebox.showerror("Ошибка", f"Не удалось открыть файл: {str(e)}")
-    
+
     def save_file(self):
         """Сохранить файл"""
         if self.current_file:
+            # Сохраняем в исходном формате
             try:
                 content = self.editor.get_all_text()
                 with open(self.current_file, 'w', encoding='utf-8') as file:
@@ -215,19 +276,42 @@ class AMIGAIDE:
                 messagebox.showerror("Ошибка", f"Не удалось сохранить файл: {str(e)}")
         else:
             self.save_as_file()
-    
+
     def save_as_file(self):
         """Сохранить как"""
         filename = filedialog.asksaveasfilename(
-            title="Сохранить файл AMIGA",
+            title="Сохранить файл AMIGA 1",
             defaultextension=".amiga1",
-            filetypes=[("Файл AMIGA 1", "*.amiga1"), ("Файл AMIGA (все версии) (не рекомендованно)", "*.amiga")]
+            filetypes=[
+                ("AMIGA 1 files", "*.amiga1"),
+                ("Legacy AMIGA files", "*.amiga"),
+                ("All files", "*.*")
+            ]
         )
         
         if filename:
             self.current_file = filename
             self.save_file()
             self.root.title(f"AMIGA IDE - {os.path.basename(filename)}")
+    
+    def toggle_theme(self, theme_name):
+        """Переключение темы"""
+        self.current_theme = theme_name
+        
+        # Применяем тему к редактору
+        self.editor.apply_theme(theme_name)
+        
+        # Применяем тему к输出
+        theme = THEMES[theme_name]
+        self.output_text.config(
+            bg=theme["output"]["bg"],
+            fg=theme["output"]["fg"]
+        )
+        
+        # Обновляем статус
+        self.status_label.config(
+            text=f"Тема: {theme['name']}"
+        )
     
     def run_code(self):
         """Запустить код на AMIGA"""

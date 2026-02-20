@@ -1,0 +1,36 @@
+{
+    "language": "中文",
+    "menu": {
+        "file": "文件",
+        "new": "新建",
+        "open": "打开",
+        "save": "保存",
+        "save_as": "另存为",
+        "exit": "退出",
+        "run": "运行",
+        "run_code": "运行",
+        "clear_output": "清除输出",
+        "help": "帮助",
+        "about": "关于",
+        "view": "视图",
+        "theme": "主题",
+        "light_theme": "亮色",
+        "dark_theme": "暗色 (测试版)"
+    },
+    "status": {
+        "ready": "就绪",
+        "line": "行",
+        "column": "列",
+        "saved": "已保存",
+        "opened": "已打开",
+        "error": "错误"
+    },
+    "dialog": {
+        "save_changes": "保存更改？",
+        "yes": "是",
+        "no": "否",
+        "cancel": "取消",
+        "warning": "警告",
+        "no_code": "没有可运行的代码"
+    }
+}

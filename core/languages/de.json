@@ -1,0 +1,36 @@
+{
+    "language": "Deutsch",
+    "menu": {
+        "file": "Datei",
+        "new": "Neu",
+        "open": "Öffnen",
+        "save": "Speichern",
+        "save_as": "Speichern unter",
+        "exit": "Beenden",
+        "run": "Ausführen",
+        "run_code": "Ausführen",
+        "clear_output": "Ausgabe löschen",
+        "help": "Hilfe",
+        "about": "Über",
+        "view": "Ansicht",
+        "theme": "Thema",
+        "light_theme": "Hell",
+        "dark_theme": "Dunkel (Beta)"
+    },
+    "status": {
+        "ready": "Bereit",
+        "line": "Zeile",
+        "column": "Spalte",
+        "saved": "Gespeichert",
+        "opened": "Geöffnet",
+        "error": "Fehler"
+    },
+    "dialog": {
+        "save_changes": "Änderungen speichern?",
+        "yes": "Ja",
+        "no": "Nein",
+        "cancel": "Abbrechen",
+        "warning": "Warnung",
+        "no_code": "Kein Code zum Ausführen"
+    }
+}

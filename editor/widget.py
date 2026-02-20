@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import ttk
 from .syntax import AMIGASyntaxHighlighter
+from .themes import THEMES
 
 class LineNumbers(tk.Canvas):
     """Виджет для отображения номеров строк"""
@@ -250,3 +251,22 @@ class AMIGAEditor(ttk.Frame):
         self.text.delete(1.0, tk.END)
         self.highlight_syntax()
         self.line_numbers.redraw()
+    
+    def apply_theme(self, theme_name):
+        """Применить тему"""
+        theme = THEMES.get(theme_name, THEMES["light"])
+        
+        # Применяем цвета к редактору
+        self.text.config(
+            bg=theme["editor"]["bg"],
+            fg=theme["editor"]["fg"],
+            insertbackground=theme["editor"]["insert"],
+            selectbackground=theme["editor"]["select_bg"],
+            selectforeground=theme["editor"]["select_fg"]
+        )
+        
+        # Обновляем подсветку синтаксиса
+        self.highlighter.update_theme(theme)
+        
+        # Обновляем номера строк
+        self.line_numbers.update_theme(theme)

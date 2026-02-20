@@ -1,0 +1,8 @@
+@use Console;
+
+private local class App {
+    global define OnRun() {
+        local string name = Console.Input("Как тебя зовут? ");
+        Console.Print($"Привет, {name}!");
+    }
+}
